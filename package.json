@@ -4,11 +4,30 @@
   "description": "Benchmark icepick vs other immutable libraries",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node index.js"
   },
   "author": "Alex Early",
   "license": "ISC",
   "dependencies": {
-    "benchmark": "^2.1.4"
-  }
+    "async": "^2.4.1",
+    "baobab": "^2.4.3",
+    "benchmark": "^2.1.4",
+    "icepick": "^2.0.0",
+    "immutable": "^3.8.1",
+    "lodash": "^4.17.4",
+    "mori": "^0.3.2",
+    "seamless-immutable": "^7.1.2",
+    "yargs": "^8.0.1"
+  },
+  "devDependencies": {
+    "standard": "^10.0.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aearly/icepick-benchmarks.git"
+  },
+  "bugs": {
+    "url": "https://github.com/aearly/icepick-benchmarks/issues"
+  },
+  "homepage": "https://github.com/aearly/icepick-benchmarks#readme"
 }
