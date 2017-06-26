@@ -1,12 +1,20 @@
-const benchmark = require('benchmark')
 const _ = require('lodash')
 const async = require('async')
+const createBenchmark = require('./benchmark')
 
 const icepick = require('icepick')
+const mori = require('mori')
+const Immutable = require('immutable')
+const seamlessImmutable = require('seamless-immutable')
+const Baobab = require('baobab')
 
 const libs = {
   vanilla: null,
-  icepick
+  icepick,
+  mori,
+  Immutable,
+  seamlessImmutable,
+  Baobab
 }
 
 const inputs = {}
@@ -39,16 +47,32 @@ const testDefs = [
   {
     library: 'vanilla',
     type: 'create',
-    fn: (vanilla) => {
-      return input
-    }
+    fn: vanilla => input
   },
   {
     library: 'icepick',
     type: 'create',
-    fn: (icepick) => {
-      return icepick.freeze(input)
-    }
+    fn: icepick => icepick.freeze(input)
+  },
+  {
+    library: 'seamlessImmutable',
+    type: 'create',
+    fn: seamlessImmutable => seamlessImmutable(input)
+  },
+  {
+    library: 'Immutable',
+    type: 'create',
+    fn: Immutable => Immutable.fromJS(input)
+  },
+  {
+    library: 'mori',
+    type: 'create',
+    fn: mori => mori.toClj(input)
+  },
+  {
+    library: 'Baobab',
+    type: 'create',
+    fn: Baobab => new Baobab(input)
   }
 ]
 
@@ -56,7 +80,7 @@ function createSuites () {
   const tests = testDefs
     .map(testDef => {
       testDef.setup = testDef.setup || defaultSetup
-      testDef.inputs = testDef.inputs ? testDef.inputs.split() : defaultInputs
+      testDef.testInputs = testDef.inputs ? testDef.inputs.split() : defaultInputs
       return testDef
     })
     .reduce((list, testDef) => {
@@ -65,9 +89,9 @@ function createSuites () {
         type,
         setup,
         fn,
-        inputs
+        testInputs
       } = testDef
-      return list.concat(inputs.map(inputName => {
+      return list.concat(testInputs.map(inputName => {
         return _.assign({}, testDef, {
           name: `${library} ${type}(${inputName})`,
           setup: () => setup(inputs[inputName]),
@@ -87,34 +111,21 @@ function createSuites () {
 }
 
 function createSuite (type, tests) {
-  const suite = new benchmark.Suite()
-
-  tests.forEach(addBench)
-
-  return suite.on('cycle', event => {
-    var mean = event.target.stats.mean * 1000
-    console.log(`${event.target}, ${mean.toPrecision(3)}ms per run`)
-  })
-
-  function addBench (testDef) {
-    const {
-      name, fn, setup
-    } = testDef
-    suite.add(name, fn, {
-      setup,
-      onError: ({message}) => console.log(message),
-      maxTime: 2
-    })
+  console.log(`
+${type}
+------------------------------------------------------------------
+    `)
+  return function run (cb) {
+    async.eachSeries(tests, (test, next) => {
+      const bench = createBenchmark(test)
+      const {mean, stdDev} = bench.run()
+      console.log(`${mean.toFixed(3)}µs per run (±${stdDev.toFixed(3)})`)
+      async.setImmediate(next)
+    }, cb)
   }
 }
 
-function runSuite (suite, callback) {
-  suite.on('complete', function () {
-    callback()
-  }).run()
-}
-
 const suites = createSuites()
-async.eachSeries(suites, runSuite, () => {
+async.series(suites, () => {
   console.log('done')
 })
