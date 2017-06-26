@@ -10,12 +10,13 @@ module.exports = function createBenchmark (opts) {
   }
 
   function run () {
-    console.log(`running: '${name}'`)
+    // console.log(`running: '${name}'`)
     setup()
     // call 10 times to warm up
-    _.times(10, fn)
+    if (!process.env.TEST) _.times(10, fn)
     const start = now()
-    for (let i = 0; i < 1000; i++) {
+    const runs = process.env.TEST ? 1 : 1000
+    for (let i = 0; i < runs; i++) {
       const sampleStart = now()
       fn()
       const sampleEnd = now()

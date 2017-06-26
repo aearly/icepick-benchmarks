@@ -1,21 +1,13 @@
 const _ = require('lodash')
 const async = require('async')
 const createBenchmark = require('./benchmark')
+const {table} = require('table')
 
 const icepick = require('icepick')
 const mori = require('mori')
 const Immutable = require('immutable')
-const seamlessImmutable = require('seamless-immutable')
+const seamless = require('seamless-immutable')
 const Baobab = require('baobab')
-
-const libs = {
-  vanilla: null,
-  icepick,
-  mori,
-  Immutable,
-  seamlessImmutable,
-  Baobab
-}
 
 const inputs = {}
 let input
@@ -43,38 +35,70 @@ setupObjs()
 const defaultSetup = (val) => { input = JSON.parse(JSON.stringify(val)) }
 const defaultInputs = Object.keys(inputs)
 
-const testDefs = [
-  {
-    library: 'vanilla',
-    type: 'create',
-    fn: vanilla => input
-  },
-  {
-    library: 'icepick',
-    type: 'create',
-    fn: icepick => icepick.freeze(input)
-  },
-  {
-    library: 'seamlessImmutable',
-    type: 'create',
-    fn: seamlessImmutable => seamlessImmutable(input)
-  },
-  {
-    library: 'Immutable',
-    type: 'create',
-    fn: Immutable => Immutable.fromJS(input)
-  },
-  {
-    library: 'mori',
-    type: 'create',
-    fn: mori => mori.toClj(input)
-  },
-  {
-    library: 'Baobab',
-    type: 'create',
-    fn: Baobab => new Baobab(input)
-  }
+function randomKey (max = 10) {
+  const randomInt = (Math.random() * max) | 0
+  return `key${randomInt}`
+}
+
+const ops = [
+  'create',
+  'access',
+  'assoc',
+  'dissoc'
 ]
+
+const libSuites = {
+  vanilla: {
+    create: () => input,
+    access: () => input[randomKey()],
+    assoc: () => { input[randomKey()] = Math.random() },
+    dissoc: () => { delete input[randomKey()] }
+  },
+  icepick: {
+    create: () => icepick.freeze(input),
+    access: () => input[randomKey()],
+    assoc: () => icepick.assoc(input, randomKey(), Math.random()),
+    dissoc: () => icepick.dissoc(input, randomKey())
+  },
+  seamless: {
+    create: () => seamless(input),
+    access: () => input[randomKey()],
+    assoc: () => seamless.set(input, randomKey(), Math.random()),
+    dissoc: () => seamless.without(input, randomKey())
+  },
+  Immutable: {
+    create: () => Immutable.fromJS(input),
+    access: () => input.get(randomKey()),
+    assoc: () => input.set(randomKey(), Math.random()),
+    dissoc: () => input.delete(randomKey())
+  },
+  mori: {
+    create: () => mori.toClj(input),
+    access: () => mori.get(input, randomKey()),
+    assoc: () => mori.assoc(input, randomKey(), Math.random()),
+    dissoc: () => mori.dissoc(input, randomKey())
+
+  }/*,
+  Baobab: {
+    create: () => new Baobab(input)
+  }*/
+}
+
+const testDefs = _.flatten(
+  _.map(libSuites, (suite, library) => {
+    return ops.map(op => ({
+      library,
+      type: op,
+      setup: op === 'create'
+        ? defaultSetup
+        : (val) => {
+          defaultSetup(val)
+          input = suite.create()
+        },
+      fn: suite[op] || (() => {})
+    }))
+  })
+)
 
 function createSuites () {
   const tests = testDefs
@@ -93,9 +117,10 @@ function createSuites () {
       } = testDef
       return list.concat(testInputs.map(inputName => {
         return _.assign({}, testDef, {
+          inputName,
           name: `${library} ${type}(${inputName})`,
           setup: () => setup(inputs[inputName]),
-          fn: () => fn(libs[library])
+          fn
         })
       }))
     }, [])
@@ -111,17 +136,18 @@ function createSuites () {
 }
 
 function createSuite (type, tests) {
-  console.log(`
-${type}
-------------------------------------------------------------------
-    `)
   return function run (cb) {
-    async.eachSeries(tests, (test, next) => {
+    console.log(type)
+    async.mapSeries(tests, (test, next) => {
       const bench = createBenchmark(test)
       const {mean, stdDev} = bench.run()
-      console.log(`${mean.toFixed(3)}µs per run (±${stdDev.toFixed(3)})`)
-      async.setImmediate(next)
-    }, cb)
+      //console.log(`${test.name}: ${mean.toFixed(3)}µs per run (±${stdDev.toFixed(3)})`)
+      async.setImmediate(next, null, _.assign({mean, stdDev}, test))
+    }, (err, results) => {
+      if (err) throw err
+      resultTable(results)
+      cb(null, results)
+    })
   }
 }
 
@@ -129,3 +155,16 @@ const suites = createSuites()
 async.series(suites, () => {
   console.log('done')
 })
+
+const tableHeader = ['', ..._.keys(inputs)]
+const libs = _.keys(libSuites)
+
+function resultTable (results) {
+  const rows = libs.map(library => {
+    const means = _.map(tableHeader.slice(1), inputName => {
+      return _.find(results, {inputName, library}).mean.toFixed(3)
+    })
+    return [library, ...means]
+  })
+  console.log(table([tableHeader, ...rows]))
+}
