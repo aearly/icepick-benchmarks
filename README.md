@@ -10,11 +10,11 @@ Testing:
 
 With inputs:
 
-- **small** - Object with 10 properties
-- **large** - Object with 100 properties
-- **huge** - Object with 1000 properties
-- **smallNested** - Object with 10 properties, each an array of 10 objects with 10 properties
-- **hugeNested** - Object with 10 properties, each an array of 100 objects with 100 properties
+- `small` - Object with 10 properties
+- `large` - Object with 100 properties
+- `huge` - Object with 1000 properties
+- `smallNested` - Object with 10 properties, each an array of 10 objects each with 10 properties
+- `hugeNested` - Object with 10 properties, each an array of 100 objects each with 100 properties
 
 ## Results
 
