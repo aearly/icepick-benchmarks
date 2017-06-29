@@ -7,7 +7,6 @@ const icepick = require('icepick')
 const mori = require('mori')
 const Immutable = require('immutable')
 const seamless = require('seamless-immutable')
-const Baobab = require('baobab')
 
 const inputs = {}
 let input
@@ -46,7 +45,8 @@ const ops = [
   'assoc',
   'dissoc',
   'accessNested',
-  'assocNested'
+  'assocNested',
+  'thaw'
 ]
 
 const libSuites = {
@@ -56,7 +56,8 @@ const libSuites = {
     assoc: () => { input[randomKey()] = Math.random() },
     dissoc: () => { delete input[randomKey()] },
     accessNested: () => input[randomKey()][randomInt()][randomKey()],
-    assocNested: () => { input[randomKey()][randomInt()][randomKey()] = Math.random() }
+    assocNested: () => { input[randomKey()][randomInt()][randomKey()] = Math.random() },
+    thaw: () => input
   },
   icepick: {
     create: () => icepick.freeze(input),
@@ -64,7 +65,8 @@ const libSuites = {
     assoc: () => icepick.assoc(input, randomKey(), Math.random()),
     dissoc: () => icepick.dissoc(input, randomKey()),
     accessNested: () => input[randomKey()][randomInt()][randomKey()],
-    assocNested: () => icepick.assocIn(input, [randomKey(), randomInt(), randomKey()], Math.random())
+    assocNested: () => icepick.assocIn(input, [randomKey(), randomInt(), randomKey()], Math.random()),
+    thaw: () => icepick.thaw(input)
   },
   seamless: {
     create: () => seamless(input),
@@ -72,7 +74,8 @@ const libSuites = {
     assoc: () => seamless.set(input, randomKey(), Math.random()),
     dissoc: () => seamless.without(input, randomKey()),
     accessNested: () => input[randomKey()][randomInt()][randomKey()],
-    assocNested: () => seamless.setIn(input, [randomKey(), randomInt(), randomKey()], Math.random())
+    assocNested: () => seamless.setIn(input, [randomKey(), randomInt(), randomKey()], Math.random()),
+    thaw: () => seamless.asMutable(input, {deep: true})
   },
   Immutable: {
     create: () => Immutable.fromJS(input),
@@ -80,7 +83,8 @@ const libSuites = {
     assoc: () => input.set(randomKey(), Math.random()),
     dissoc: () => input.delete(randomKey()),
     accessNested: () => input.getIn([randomKey(), randomInt(), randomKey()]),
-    assocNested: () => input.setIn([randomKey(), randomInt(), randomKey()], Math.random())
+    assocNested: () => input.setIn([randomKey(), randomInt(), randomKey()], Math.random()),
+    thaw: () => input.toJS()
   },
   mori: {
     create: () => mori.toClj(input),
@@ -88,12 +92,9 @@ const libSuites = {
     assoc: () => mori.assoc(input, randomKey(), Math.random()),
     dissoc: () => mori.dissoc(input, randomKey()),
     accessNested: () => mori.getIn(input, [randomKey(), randomInt(), randomKey()]),
-    assocNested: () => mori.assocIn(input, [randomKey(), randomInt(), randomKey()], Math.random())
-
-  }/*,
-  Baobab: {
-    create: () => new Baobab(input)
-  }*/
+    assocNested: () => mori.assocIn(input, [randomKey(), randomInt(), randomKey()], Math.random()),
+    thaw: () => mori.toJs(input)
+  }
 }
 
 const testDefs = _.flatten(
