@@ -3,6 +3,24 @@ const async = require('async')
 const createBenchmark = require('./benchmark')
 const {table, getBorderCharacters} = require('table')
 
+const args = require('yargs')
+  .options({
+    type: {
+      alias: 't',
+      description: 'filter by type of test',
+      default: '.*',
+      coerce: val => new RegExp(val)
+    },
+    library: {
+      alias: 'l',
+      description: 'filter by library',
+      default: '.*',
+      coerce: val => new RegExp(val)
+    }
+  })
+  .help()
+  .argv
+
 const inputs = {}
 
 const objify = (createVal = () => Math.random()) => (obj, i) => {
@@ -36,12 +54,13 @@ const ops = [
   'accessNested',
   'assocNested',
   'thaw'
-]
+].filter(op => op.match(args.type))
 
 const {libSuites, defaultSetup} = require('./tests')
 
 const testDefs = _.flatten(
   _.map(libSuites, (suite, library) => {
+    if (!library.match(args.library)) return []
     return ops.map(op => ({
       library,
       type: op,
@@ -105,7 +124,7 @@ async.series(suites, () => {
 })
 
 const tableHeader = ['', ..._.keys(inputs)]
-const libs = _.keys(libSuites)
+const libs = _.keys(libSuites).filter(lib => lib.match(args.library))
 
 function resultTable (results) {
   const rows = libs.map(library => {

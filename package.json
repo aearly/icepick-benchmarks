@@ -18,7 +18,7 @@
     "performance-now": "^2.1.0",
     "seamless-immutable": "^7.1.2",
     "table": "^4.0.1",
-    "yargs": "^8.0.1"
+    "yargs": "^8.0.2"
   },
   "devDependencies": {
     "standard": "^10.0.2"
