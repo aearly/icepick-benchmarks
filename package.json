@@ -9,20 +9,20 @@
   "author": "Alex Early",
   "license": "ISC",
   "dependencies": {
-    "async": "^2.5.0",
-    "baobab": "^2.4.3",
-    "icepick": "^2.0.0",
+    "async": "^3.1.0",
+    "baobab": "^2.5.3",
+    "icepick": "^2.4.0",
     "immer": "^5.0.0",
-    "immutable": "^3.8.1",
-    "lodash": "^4.17.4",
+    "immutable": "^3.8.2",
+    "lodash": "^4.17.15",
     "mori": "^0.3.2",
     "performance-now": "^2.1.0",
-    "seamless-immutable": "^7.1.2",
-    "table": "^4.0.1",
-    "yargs": "^8.0.2"
+    "seamless-immutable": "^7.1.4",
+    "table": "^5.4.6",
+    "yargs": "^15.0.2"
   },
   "devDependencies": {
-    "standard": "^10.0.2"
+    "standard": "^14.3.1"
   },
   "repository": {
     "type": "git",
