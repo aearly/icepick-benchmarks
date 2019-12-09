@@ -2,12 +2,12 @@
 
 Testing:
 
-- Vanilla, mutable objects
-- icepick
-- seamless-immutable
-- immer
-- Immutable
-- mori
+- Vanilla, mutable objects (0kB)
+- icepick (1kB)
+- seamless-immutable (2.7kB)
+- immer (6.2kb)
+- Immutable (17.2kB)
+- mori (35.2kB)
 
 With inputs:
 
