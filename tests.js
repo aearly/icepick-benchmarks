@@ -3,6 +3,7 @@ const icepick = require('icepick')
 const mori = require('mori')
 const Immutable = require('immutable')
 const seamless = require('seamless-immutable')
+const immer = require('immer')
 
 let input
 
@@ -49,6 +50,15 @@ exports.libSuites = {
     accessNested: () => input[randomKey()][randomInt()][randomKey()],
     assocNested: () => seamless.setIn(input, [randomKey(), randomInt(), randomKey()], Math.random()),
     thaw: () => seamless.asMutable(input, {deep: true})
+  },
+  immer: {
+    create: () => immer.produce(input, draft => {}),
+    access: () => input[randomKey()],
+    assoc: () => immer.produce(input, draft => { draft[randomKey()] = Math.random() }),
+    dissoc: () => immer.produce(input, draft => { delete draft[randomKey()] }),
+    accessNested: () => input[randomKey()][randomInt()][randomKey()],
+    assocNested: () => immer.produce(input, draft => { draft[randomKey()][randomInt()][randomKey()] = Math.random() }),
+    thaw: () => input
   },
   Immutable: {
     create: () => Immutable.fromJS(input),
