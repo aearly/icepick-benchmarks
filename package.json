@@ -14,7 +14,7 @@
     "icepick": "^2.4.0",
     "immer": "^5.0.0",
     "immutable": "^3.8.2",
-    "lodash": "^4.17.15",
+    "lodash": "^4.17.21",
     "mori": "^0.3.2",
     "performance-now": "^2.1.0",
     "seamless-immutable": "^7.1.4",
