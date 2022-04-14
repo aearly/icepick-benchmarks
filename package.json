@@ -9,7 +9,7 @@
   "author": "Alex Early",
   "license": "ISC",
   "dependencies": {
-    "async": "^3.1.0",
+    "async": "^3.2.2",
     "baobab": "^2.5.3",
     "icepick": "^2.4.0",
     "immer": "^5.0.0",
